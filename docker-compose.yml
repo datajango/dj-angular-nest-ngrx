@@ -1,0 +1,86 @@
+version: "3.1"
+
+services:
+
+  # nginx:
+  #   build:
+  #     context: ./nginx
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./www:/var/www
+  #   links:
+  #     - server
+
+  #client:
+  #  build: ./client
+  #  ports:
+  #    - 3000:80
+
+  # server:
+  #   build: ./server
+  #   volumes:
+  #     - ./server/src:/server/src
+  #     - ./server/dist:/server/dist
+  #   ports:
+  #     - "9000:9000"
+  #     - "9229:9229"
+  #   restart: always
+  #   tty: true
+  #   links:
+  #     - mongodb
+
+  maildev:
+     image: djfarrelly/maildev
+     ports:
+       - 1080:80
+
+  mongodb:
+    image: bitnami/mongodb:latest
+    ports:
+      - 27017:27017
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    volumes:
+      - mongodb_data:/bitnami
+      - ./transfer:/home/transfer
+
+  mongo-express:
+    image: mongo-express
+    restart: always
+    ports:
+      - 8081:8081
+    environment:
+      - ME_CONFIG_OPTIONS_EDITORTHEME=ambiance
+      - ME_CONFIG_MONGODB_SERVER=mongodb
+      - ME_CONFIG_MONGODB_PORT=27017
+      #- ME_CONFIG_MONGODB_ENABLE_ADMIN=false
+      - ME_CONFIG_MONGODB_AUTH_DATABASE=admin
+      #- ME_CONFIG_SITE_BASEURL=/mongoadmin/
+    links:
+      - mongodb
+ 
+  redis:
+    image: 'bitnami/redis:latest'
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    ports:
+      - 6379:6379
+    volumes:
+      - redis_data:/bitnami/redis/data
+
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    restart: always
+    environment:
+      - REDIS_HOSTS=localhost:redis:6379
+    ports:
+      - 8082:8081
+    links:
+      - redis
+
+volumes:  
+  mongodb_data:
+  redis_data:
